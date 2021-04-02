@@ -1,11 +1,15 @@
- <template>
- <div>
-  <el-row>
- <el-button type="primary" v-show="openbuttonVisible" @click="createCanvas">点击打开画板</el-button>
-  </el-row>
-<el-row style="padding-top:30px" v-show="openbuttonVisible">
-  <el-col :span="6" :offset="9">
- <!-- <el-upload
+<template>
+  <div>
+    <!-- 本页面完成草图的绘制并上传或者直接上传草图文件 -->
+    <el-row>
+      <el-button type="primary" v-show="openbuttonVisible" @click="createCanvas"
+        >点击打开画板</el-button
+      >
+    </el-row>
+    <el-row style="padding-top:30px" v-show="openbuttonVisible">
+      <el-col :span="6" :offset="9">
+        <!-- 第一种写法，目前不用，改为下面的第二种写法 -->
+        <!-- <el-upload
   class="upload-demo"
   action="http://127.0.0.1:5000/"
   accept="image/png,image/gif,image/jpg,image/jpeg"
@@ -21,73 +25,106 @@
   <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
 </el-upload> -->
 
-<!-- 与服务器链接的url -->
-<!-- action="http://100.64.161.192:9091/predict" -->
-<el-upload
-  class="upload-demo"
-  ref="upload"
-  action="http://127.0.0.1:5000/predict"
-  :headers="headers"
-  :on-preview="handlePreview"
-  :on-remove="handleRemove"
-  :file-list="fileList"
-  :auto-upload="false">
-  <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
-  <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
-  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
-</el-upload>
+        <!-- 与服务器链接的url -->
+        <!-- action="http://100.64.161.192:9091/predict" -->
 
-  </el-col>
-</el-row>
- <el-row style="padding-top:30px">
-   <el-button  type="primary" v-show="searchVisible" @click="handleDrawSubmit">搜索</el-button>
-</el-row>
+        <!-- 文件上传 （目前是本地的url）-->
+        <el-upload
+          class="upload-demo"
+          ref="upload"
+          action="http://127.0.0.1:5000/predict"
+          :headers="headers"
+          :on-preview="handlePreview"
+          :on-remove="handleRemove"
+          :file-list="fileList"
+          :auto-upload="false"
+        >
+          <el-button slot="trigger" size="small" type="primary"
+            >选取文件</el-button
+          >
+          <el-button
+            style="margin-left: 10px;"
+            size="small"
+            type="success"
+            @click="submitUpload"
+            >上传到服务器</el-button
+          >
+          <div slot="tip" class="el-upload__tip">
+            只能上传jpg/png文件，且不超过500kb
+          </div>
+        </el-upload>
+      </el-col>
+    </el-row>
+    <!-- 文件上传后进行搜素，跳转到下一个页面，目前不用此按钮 -->
+    <!-- <el-row style="padding-top:30px">
+      <el-button type="primary" v-show="searchVisible" @click="handleDrawSubmit"
+        >搜索</el-button
+      >
+    </el-row> -->
 
- <div class="canvas" v-show="canvasVisible">
-   <!-- <canvas id="canvas" width="300" height="300">  -->
-    <el-card shadow="always" class="box-card">
-    <el-row type="flex" class="canrow" justify="center">
-      <el-col :span="4" class="canrow-col">
-        <el-slider v-if="isPainting"
-                   v-model="lineWidth"
-                   :min="1"
-                   :max="50">
-        </el-slider>
-        <el-slider v-else
-                   v-model="lineWidth"
-                   :min="10"
-                   :max="50"
-                   :step="10">
-        </el-slider>
-      </el-col>
-      <el-col :span="8">
-        <div class="header">
-          <el-button-group>
-            <el-button :type=buttonType(0)
-                       icon="iconfont icon-pen" round
-                       @click="painting">
-            </el-button>
-            <el-button :type="buttonType(1)"
-                       icon="iconfont icon-eraser"
-                       @click="eraser">
-            </el-button>
-            <el-button :type="buttonType(2)"
-                       icon="iconfont icon-last-step"
-                       :disabled="history.length === 0"
-                       @click="lastStep">
-            </el-button>
-            <el-button :type="buttonType(3)"
-                       icon="iconfont icon-clear"
-                       @click="clearAll">
-            </el-button>
-            <el-button :type="buttonType(4)"
-                       icon="iconfont icon-save"
-                       round @click="save">
-            </el-button>
-          </el-button-group>
-        </div>
-      </el-col>
-      <!-- <el-col span="6" class="row-col">
+    <!-- 用画板进行草图的绘制 -->
+    <div class="canvas" v-show="canvasVisible">
+      <!-- <canvas id="canvas" width="300" height="300">  -->
+      <el-card shadow="always" class="box-card">
+        <el-row type="flex" class="canrow" justify="center">
+          <el-col :span="4" class="canrow-col">
+            <el-slider v-if="isPainting" v-model="lineWidth" :min="1" :max="50">
+            </el-slider>
+            <!-- 调整画笔粗细 -->
+            <el-slider
+              v-else
+              v-model="lineWidth"
+              :min="10"
+              :max="50"
+              :step="10"
+            >
+            </el-slider>
+          </el-col>
+          <el-col :span="8">
+            <div class="header">
+              <el-button-group>
+                <!-- 画笔 -->
+                <el-button
+                  :type="buttonType(0)"
+                  icon="iconfont icon-pen"
+                  round
+                  @click="painting"
+                >
+                </el-button>
+                <!-- 橡皮 -->
+                <el-button
+                  :type="buttonType(1)"
+                  icon="iconfont icon-eraser"
+                  @click="eraser"
+                >
+                </el-button>
+                <!-- 撤销 -->
+                <el-button
+                  :type="buttonType(2)"
+                  icon="iconfont icon-last-step"
+                  :disabled="history.length === 0"
+                  @click="lastStep"
+                >
+                </el-button>
+                <!-- 清空画板 -->
+                <el-button
+                  :type="buttonType(3)"
+                  icon="iconfont icon-clear"
+                  @click="clearAll"
+                >
+                </el-button>
+                <!-- 保存图片 -->
+                <el-button
+                  :type="buttonType(4)"
+                  icon="iconfont icon-save"
+                  round
+                  @click="save"
+                >
+                </el-button>
+              </el-button-group>
+            </div>
+          </el-col>
+          <!-- <el-col span="6" class="row-col">
         <div class="row-col-color">
           <el-button v-for="(item, index) in colorArr"
                      :size="colorSize(index)"
@@ -96,27 +133,34 @@
           </el-button>
         </div>
       </el-col> -->
-    </el-row>
-    <el-row>
-      <!-- <el-col :span="14" :offset="6"> -->
-        <div class="content">
-          <!-- <canvas ref="canvas" id="canvas" width="300" height="300"></canvas> -->
-           <canvas id="canvas" width="300" height="300"></canvas>
-        </div>
-      <!-- </el-col> -->
-    </el-row>
-  
+        </el-row>
+        <el-row>
+          <!-- <el-col :span="14" :offset="6"> -->
+          <div class="content">
+            <!-- <canvas ref="canvas" id="canvas" width="300" height="300"></canvas> -->
+            <canvas id="canvas" width="300" height="300"></canvas>
+          </div>
+          <!-- </el-col> -->
+        </el-row>
 
-  <span class="dialog-footer">
-    <el-button @click="canvasVisible = false; openbuttonVisible=true">取 消</el-button>
-    <el-button type="primary" @click="handleDrawSubmit">确 定</el-button>
-  </span>
-   </el-card>
- </div>
+        <span class="dialog-footer">
+          <!-- 退出画板 -->
+          <el-button
+            @click="
+              canvasVisible = false;
+              openbuttonVisible = true;
+            "
+            >取 消</el-button
+          >
+          <!-- 用绘制的草图进行搜索 -->
+          <el-button type="primary" @click="handleDrawSubmit">确 定</el-button>
+        </span>
+      </el-card>
+    </div>
 
-  <h1>{{msg}}</h1>
-  <el-button type="primary" @click="testBack">test与后端的连接</el-button>
-
+    <!-- 测试与后端的连接，之后会删掉 -->
+    <h1>{{ msg }}</h1>
+    <el-button type="primary" @click="testBack">test与后端的连接</el-button>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -151,6 +195,7 @@ import VueAxios from 'vue-axios'
       }
     },
     methods: {
+      // 测试函数，目前没有使用
       getMessage(){
         // const path='http://100.64.161.192:9091/';
         const path='http://127.0.0.1:5000/';
@@ -167,34 +212,22 @@ import VueAxios from 'vue-axios'
         this.getMessage();
         },
 
-      // handleRemove(file, fileList) {
-      //   console.log(file, fileList);
-      // },
-      
-      
-      // // 点击保存按钮上传图片
-      // submit2:function(){
-		  //   this.$refs.upload.submit();
-	    // },
-		
-	    // // 图片上传成功后，后台返回图片的路径
-	    // onSuccess:function(res){
-		  //   // console.log(res);
-		  //   if(res.status==200){
-			//     this.imgUrl=res.data.imgUrl;
-		  //   }
-      // },
+      //将选取的文件上传到服务器
       submitUpload() {
         this.headers = {"Content-Type": "application/x-www-form-urlencoded"};
         this.$refs.upload.submit();
       },
+
+      // 文件上传部分的取消操作
       handleRemove(file, fileList) {
         console.log(file, fileList);
       },
+      //文件上传部分的预览操作
       handlePreview(file) {
         console.log(file);
       },
 
+      //暂时弃用
       handleClose(done) {
         this.$confirm('确认关闭？')
           .then(_ => {
@@ -202,6 +235,7 @@ import VueAxios from 'vue-axios'
           })
           .catch(_ => {});
       },
+      //暂时弃用
       getColor() {
         this.$store.dispatch('ajax', {
           url: '/canvas/color',
@@ -213,6 +247,7 @@ import VueAxios from 'vue-axios'
         });
       },
 
+      //打开画布
       createCanvas(){
         this.initCanvas();
         this.painting();
@@ -221,6 +256,8 @@ import VueAxios from 'vue-axios'
         this.searchVisible=false
       },
 
+      //画布初始化
+      // 目前存在bug，画笔位置和鼠标位置存在错位
       initCanvas() {
         let that = this;
         // 获取canvas元素
@@ -239,8 +276,9 @@ import VueAxios from 'vue-axios'
         console.log(rect.top)
         // this.pageWidth = document.documentElement.clientWidth - rect.x - 50;
         // this.pageHeight = document.documentElement.clientHeight - rect.y - 50;
-        this.pageWidth = document.documentElement.clientWidth - rect.left - 50;
-        this.pageHeight = document.documentElement.clientHeight - rect.top - 50;
+        this.pageWidth = document.documentElement.clientWidth - rect.left;
+        this.pageHeight = document.documentElement.clientHeight - rect.top;
+        //debug
         console.log("document.documentElement.clientWidth document.documentElement.clientHeight")
         console.log(document.documentElement.clientWidth)
         console.log(document.documentElement.clientHeight)
@@ -259,7 +297,7 @@ import VueAxios from 'vue-axios'
           let x = e.clientX - initX;
           let y = e.clientY - initY;
           // let x = e.clientX;
-          // let y = e.clientY ;
+          // let y = e.clientY;
           console.log("鼠标按下事件");
           console.log(x);
           console.log(y);
@@ -297,6 +335,7 @@ import VueAxios from 'vue-axios'
           that.paint = that.clear = false;
         };
       },
+      //进行画线
       drawLine() {
         this.ctx.lineWidth = this.lineWidth;
         this.ctx.lineCap = "round";
@@ -306,20 +345,24 @@ import VueAxios from 'vue-axios'
         this.ctx.stroke();
         this.ctx.closePath();
       },
+      //调整画笔粗细
       painting() {
         this.isPainting = true;
         this.active = 0;
       },
+      //橡皮操作
       eraser() {
         this.isPainting = false;
         this.active = 1;
       },
+      //清空画板操作
       clearAll() {
         this.paint = this.clear = this.isPainting = false;
         this.ctx.clearRect(0, 0, this.pageWidth, this.pageHeight);
         this.history.length = 1;
         this.active = 3;
       },
+      //保存所绘制的草图
       save() {
         this.active = 4;
         this.paint = this.clear = this.isPainting = false;
@@ -344,6 +387,8 @@ import VueAxios from 'vue-axios'
     //       return "medium"
     //     }
     //   },
+
+      // 撤销操作
       lastStep() {
         this.history.pop();
         this.ctx.putImageData(this.history[this.history.length - 1], 0, 0);
@@ -354,14 +399,8 @@ import VueAxios from 'vue-axios'
           return "primary"
         }
       },
-      handleRemove(file, fileList) {
-        console.log(file, fileList);
-      },
-      handlePreview(file) {
-        console.log(file);
-        this.searchVisible=true;
-      },
 
+      //base64图片转file文件
       base64ImgtoFile(dataurl, filename = 'file') {
         let arr = dataurl.split(',')
         let mime = arr[0].match(/:(.*?);/)[1]
@@ -377,13 +416,14 @@ import VueAxios from 'vue-axios'
       })
       },
 
+      // 用绘制的草图进行搜索
       handleDrawSubmit(){
-        this.canvasVisible = false; 
-        this.openbuttonVisible=true; 
+        this.canvasVisible = false;
+        this.openbuttonVisible=true;
         console.log("markkkkkkkkkk")
         let imgUrl = this.canvas.toDataURL("image/png");
         //console.log(imgUrl);
-        let imgFile = this.base64ImgtoFile(imgUrl); 
+        let imgFile = this.base64ImgtoFile(imgUrl);
         console.log(imgFile);
         const param = new FormData();
         param.append('file', imgFile);
@@ -397,7 +437,7 @@ import VueAxios from 'vue-axios'
           .catch(function (error) {
             console.log(error);
           })
-        
+
         //this.$router.push('/result')
       },
       handleUploadSubmit(){
@@ -412,27 +452,26 @@ import VueAxios from 'vue-axios'
   }
 </script>
 <style lang="less" scoped>
-  .header {
-    text-align: center;
-  }
-  .canrow {
-    padding: 5px 0;
-    &-col {
-      padding: 0 30px;
-      background-color: #f9fafc;
-      border-radius: 50px;
-      &-color {
-        text-align: center;
-        line-height: 30px;
-      }
+.header {
+  text-align: center;
+}
+.canrow {
+  padding: 5px 0;
+  &-col {
+    padding: 0 30px;
+    background-color: #f9fafc;
+    border-radius: 50px;
+    &-color {
+      text-align: center;
+      line-height: 30px;
     }
   }
-  .box-card {
-    width: 1000px;
-    margin: 0 auto;
-  }
-  .content {
-    border: 1px solid #DCDFE6;
-  }
+}
+.box-card {
+  width: 1000px;
+  margin: 0 auto;
+}
+.content {
+  border: 1px solid #dcdfe6;
+}
 </style>
-
