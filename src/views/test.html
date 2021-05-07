@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>    
+        <meta charset=utf-8>    
+        <title>我的第一个Three.js案例</title>    
+        <style>        
+            body {margin: 0;}
+            canvas { width: 100%; height: 100%; display: block;}    
+        </style>
+    </head>
+    <body onload="init()">
+        <script src="https://cdn.bootcss.com/three.js/92/three.js"></script>
+        <script src="https://www.wjceo.com/lib/js/libs/stats.min.js">
+        //渲染帧率检测 </script>
+        <script src="https://cdn.bootcss.com/dat-gui/0.7.1/dat.gui.min.js">
+        // 页面调试 </script>
+        <script>   
+         //声明一些全局变量    
+         var renderer, camera, scene, geometry, material, mesh;
+         var controls = {
+                positionX:0,
+                positionY:0,
+                positionZ:0
+            };    
+         //初始化渲染器   
+        function initRenderer() {
+            renderer = new THREE.WebGLRenderer(); //实例化渲染器
+            renderer.setSize(window.innerWidth, window.innerHeight); //设置宽和高        
+            document.body.appendChild(renderer.domElement); //添加到dom    
+        }    
+        //初始化场景    
+        function initScene() {        
+            scene = new THREE.Scene(); //实例化场景    
+        }    
+        //初始化相机    
+        function initCamera() {        
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200); //实例化相机        
+            camera.position.set(0, 0, 15);    
+        }    
+        //创建模型    
+        function initMesh() {        
+            geometry = new THREE.BoxGeometry( 2, 2, 2 ); //创建几何体        
+            //material = new THREE.MeshNormalMaterial(); //创建材质 
+            material = new THREE.MeshLambertMaterial({color:0x00ffff});       
+            mesh = new THREE.Mesh( geometry, material ); //创建网格        
+            scene.add( mesh ); //将网格添加到场景    
+        }    
+        //运行动画    
+        function animate() {        
+            requestAnimationFrame(animate); //循环调用函数        
+            mesh.rotation.x += 0.01; //每帧网格模型的沿x轴旋转0.01弧度        
+            mesh.rotation.y += 0.02; //每帧网格模型的沿y轴旋转0.02弧度    
+            stats.update();          //更新性能插件    
+            renderer.render( scene, camera ); //渲染界面    
+        }
+        
+        function updatePosition() {
+            mesh.position.set(controls.positionX, controls.positionY, controls.positionZ);
+        }
+
+        function initLight() {
+            var light = new THREE.DirectionalLight(0xffffff); //添加了一个白色的平行光
+            light.position.set(20, 50, 50); //设置光的方向
+            scene.add(light); //添加到场景
+
+            //添加一个全局环境光
+            scene.add(new THREE.AmbientLight(0x222222));
+        }
+
+        //初始化函数，页面加载完成是调用    
+        function init() {
+            stats = new Stats();
+            document.body.appendChild(stats.dom);
+
+            //dat.GUI
+            gui = new dat.GUI();
+            gui.add(controls, "positionX", -10, 10).onChange(updatePosition);
+            gui.add(controls, "positionY", -10, 10).onChange(updatePosition);
+            gui.add(controls, "positionZ", -10, 10).onChange(updatePosition);
+
+            initRenderer();        
+            initScene();        
+            initCamera();
+            initLight();        
+            initMesh();        
+            animate();    
+        }
+        </script>
+    </body>
+</html>

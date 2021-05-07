@@ -4,7 +4,7 @@
     <el-row>
       <el-button type="primary" v-show="openbuttonVisible" @click="createCanvas"
         >点击打开画板</el-button
-      >
+        >
     </el-row>
     <el-row style="padding-top:30px" v-show="openbuttonVisible">
       <el-col :span="6" :offset="9">
@@ -163,11 +163,17 @@
     <el-button type="primary" @click="testBack">test与后端的连接</el-button>
   </div>
 </template>
+
 <script type="text/ecmascript-6">
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import Navigator from "../components/Navigator"
 
   export default {
+    name: 'Draft',
+    components: {
+      Navigator,
+    },
     data() {
       return {
         active: 0,
@@ -190,8 +196,13 @@ import VueAxios from 'vue-axios'
         msg:'',
         imgUrl:'',
         file:'',
-        fileList:[]
-        //fileList: [{name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}]
+        fileList:[],
+        //fileList: [{name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}],
+        navStatus: {
+                status1: 0,
+                status2: 0,
+                status3: 1
+        }
       }
     },
     methods: {
@@ -451,6 +462,7 @@ import VueAxios from 'vue-axios'
     }
   }
 </script>
+
 <style lang="less" scoped>
 .header {
   text-align: center;
