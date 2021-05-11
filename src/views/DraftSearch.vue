@@ -6,91 +6,31 @@
     <el-main>
       <div class="overlay"></div>
       <div class="main-background"></div>
-      <div class="sketch">
-        草图绘制
-      </div>
-      <div class="upload-display">
+      <el-col :span="6" offset="1">
         <el-row>
-          <el-col :span="6" offset="2">
-            <el-card class="img-show">
-              <img v-if="hasImage" :src="imageShowUrl" class="img-display" />
-              <i v-else class="el-icon-picture-outline img-show-icon"></i>
-            </el-card>
-          </el-col>
-
-          <el-col :span="10" offset="2"
-            ><div>
-              <el-card shadow="always">
-                <el-collapse v-model="activeName" accordion>
-                  <el-collapse-item title="绘制草图" name="1">
-                    <div>
-                      <el-button type="primary" @click="createCanvas"
-                        >点击打开画板</el-button
-                      >
-                    </div>
-                  </el-collapse-item>
-                  <el-collapse-item title="上传本地图片" name="2">
-                    <div>
-                      <!-- 与服务器链接的url -->
-                      <!-- action="http://100.64.161.192:9091/predict" -->
-
-                      <!-- 文件上传 （目前是本地的url）-->
-
-                      <el-col :span="16">
-                        <el-upload
-                          class="upload-demo"
-                          ref="upload"
-                          action="http://127.0.0.1:5000/predict"
-                          :headers="headers"
-                          :on-preview="handlePreview"
-                          :on-change="getFile"
-                          :on-remove="handleRemove"
-                          :file-list="fileList"
-                          :auto-upload="false"
-                        >
-                          <el-button slot="trigger" size="small" type="primary"
-                            >选取文件</el-button
-                          >
-
-                          <el-button
-                            style="margin-left: 10px;"
-                            size="small"
-                            type="success"
-                            @click="submitUpload"
-                            >上传到服务器</el-button
-                          >
-                          <div slot="tip" class="el-upload__tip">
-                            只能上传jpg/png文件，且不超过500kb
-                          </div>
-                        </el-upload>
-                      </el-col>
-                    </div>
-                  </el-collapse-item>
-                  <el-collapse-item title="输入图片网址url" name="3">
-                    <div style="margin-top: 10px;">
-                      <el-input
-                        placeholder="输入图片网址"
-                        v-model="picUrl"
-                        class="input-with-select"
-                      >
-                        <el-button
-                          slot="append"
-                          icon="el-icon-search"
-                          @click="urlUpload"
-                        ></el-button>
-                      </el-input>
-                    </div>
-                  </el-collapse-item>
-                </el-collapse>
-              </el-card></div
-          ></el-col>
-          <el-col :span="4"><div></div></el-col>
+          <div class="sketch">
+            草图绘制
+          </div>
         </el-row>
         <el-row>
-          <!-- 用画板进行草图的绘制 -->
-          <div class="canvas" v-show="canvasVisible">
-            <!-- <canvas id="canvas" width="300" height="300">  -->
-            <el-card shadow="always" class="box-card">
+          <el-card class="img-show">
+            <img v-if="hasImage" :src="imageShowUrl" class="img-display" />
+            <i v-else class="el-icon-picture-outline img-show-icon"></i>
+          </el-card>
+        </el-row>
+        <el-row>
+          <el-button class="button-draw" @click="createCanvas"
+            >绘制草图</el-button
+          >
+          <el-dialog
+            title="画板"
+            :visible.sync="centerDrawDialogVisible"
+            :width="canvasWidth"
+            center
+          >
+            <!-- 用画板进行草图的绘制 -->
+            <div class="canvasboard" v-show="canvasVisible">
+              <!-- <canvas id="canvas" width="300" height="300">  -->
               <el-row type="flex" class="canrow" justify="center">
                 <el-col :span="4" class="canrow-col">
                   <el-slider
@@ -110,7 +50,7 @@
                   >
                   </el-slider>
                 </el-col>
-                <el-col :span="8">
+                <el-col :span="12">
                   <div class="header">
                     <el-button-group>
                       <!-- 画笔 -->
@@ -157,37 +97,93 @@
               </el-row>
               <el-row>
                 <div class="content">
-                  <canvas id="canvas" width="300" height="300"></canvas>
+                  <canvas id="canvas" width="300px" height="300px"></canvas>
                 </div>
               </el-row>
-
-              <span class="dialog-footer">
-                <el-row>
-                  <!-- 退出画板 -->
-                  <el-button type="primary" round @click="canvasVisible = false"
-                    >取 消</el-button
-                  >
-                  <!-- 用绘制的草图进行搜索 -->
-                  <el-button type="success" round @click="handleDrawSubmit"
-                    >确 定</el-button
-                  >
-                </el-row>
-              </span>
-            </el-card>
-          </div>
+            </div>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="centerDrawDialogVisible = false"
+                >取 消</el-button
+              >
+              <el-button type="primary" @click="handleDrawSubmit"
+                >确 定</el-button
+              >
+            </span>
+          </el-dialog>
         </el-row>
-      </div>
-      <div class="result-display">
-        <DisplayBox :id="0"></DisplayBox>
-        <DisplayBox :id="1"></DisplayBox>
-        <DisplayBox :id="2"></DisplayBox>
-        <DisplayBox :id="3"></DisplayBox>
-        <DisplayBox :id="4"></DisplayBox>
-        <DisplayBox :id="5"></DisplayBox>
-        <DisplayBox :id="6"></DisplayBox>
-        <DisplayBox :id="7"></DisplayBox>
-        <!-- <DisplayBox :id="8"></DisplayBox> -->
-      </div>
+        <el-row>
+          <el-button
+            class="button-upload"
+            @click="centerUploadDialogVisible = true"
+            >上传图片</el-button
+          >
+
+          <el-dialog
+            title="请从以下两种方式中选择一种："
+            :visible.sync="centerUploadDialogVisible"
+            width="30%"
+            center
+          >
+            <div class="url-font">
+              <span>图片url：</span>
+              <div style="margin-top: 10px;">
+                <el-input
+                  placeholder="输入图片网址"
+                  v-model="picUrl"
+                  class="input-with-select"
+                  ><el-button
+                    slot="append"
+                    icon="el-icon-search"
+                    @click="urlUpload"
+                  ></el-button
+                ></el-input>
+              </div>
+            </div>
+            <div>
+              <div class="upload-font">
+                <span>上传本地图片：</span>
+              </div>
+              <el-upload
+                class="upload-demo"
+                ref="upload"
+                action="http://127.0.0.1:5000/predict"
+                :headers="headers"
+                :on-preview="handlePreview"
+                :on-remove="handleRemove"
+                :on-success="handleSuccess"
+                :file-list="fileList"
+                :auto-upload="false"
+              >
+                <el-button slot="trigger" type="primary">选取文件</el-button>
+
+                <el-button
+                  style="margin-left: 20px;"
+                  type="success"
+                  @click="submitUpload"
+                  >上传到服务器</el-button
+                >
+                <div slot="tip" class="el-upload__tip">
+                  只能上传jpg/png文件，且不超过500kb
+                </div>
+              </el-upload>
+            </div>
+          </el-dialog>
+        </el-row>
+      </el-col>
+      <el-col :span="14" offset="2">
+        <div class="result-display">
+          <DisplayBox :id="0"></DisplayBox>
+          <DisplayBox :id="1"></DisplayBox>
+          <DisplayBox :id="2"></DisplayBox>
+          <DisplayBox :id="3"></DisplayBox>
+          <DisplayBox :id="4"></DisplayBox>
+          <DisplayBox :id="5"></DisplayBox>
+          <DisplayBox :id="6"></DisplayBox>
+          <DisplayBox :id="7"></DisplayBox>
+          <DisplayBox :id="8"></DisplayBox>
+          <!-- <DisplayBox :id="8"></DisplayBox> -->
+        </div>
+      </el-col>
     </el-main>
   </el-container>
 </template>
@@ -213,6 +209,8 @@ export default {
         status3: 1
       },
       canvasVisible: false,
+      canvasWidth: 800,
+      canvasHeight: 600,
       paint: false,
       clear: false,
       isPainting: false,
@@ -233,18 +231,25 @@ export default {
       hasImage: false,
       useDrawboard: false,
       useUpload: false,
-      useUrl: false
+      useUrl: false,
+      centerDrawDialogVisible: false,
+      centerUploadDialogVisible: false
     };
   },
   methods: {
     //打开画布
     createCanvas() {
-      this.initCanvas();
-      this.painting();
-      this.canvasVisible = true;
+      this.centerDrawDialogVisible = true;
+      //this.$nextTick()的作用：将回调延迟到下次 DOM 更新循环之后执行
+      //当dialog打开时，这时候canvas有可能并没有被渲染出来，这个时候去获取canvas元素会报错；
+      //而this.$nextTick()在这里实际上指的是等待dialog里面的canvas渲染完，再去执行里面的代码
+      this.$nextTick(() => {
+        this.initCanvas();
+        this.painting();
+        this.canvasVisible = true;
+      });
     },
     //画布初始化
-    // 目前存在bug，画笔位置和鼠标位置存在错位
     initCanvas() {
       let that = this;
       // 获取canvas元素
@@ -265,8 +270,8 @@ export default {
       this.pageWidth = document.documentElement.clientWidth;
       this.pageHeight = document.documentElement.clientHeight;
 
-      this.canvas.width = this.pageWidth;
-      this.canvas.height = this.pageHeight;
+      this.canvas.width = this.canvasWidth * 0.9;
+      this.canvas.height = this.canvasHeight - 100;
       let image = this.ctx.getImageData(0, 0, that.pageWidth, that.pageHeight);
       this.history.push(image);
       // 鼠标按下事件
@@ -386,8 +391,10 @@ export default {
       this.hasImage = true;
       this.useDrawboard = true;
       this.canvasVisible = false;
+      this.centerDrawDialogVisible = false;
       let imgUrl = this.canvas.toDataURL("image/png");
       this.imageShowUrl = imgUrl;
+      console.log(this.imageShowUrl);
       let imgFile = this.base64ImgtoFile(imgUrl);
       console.log(imgFile);
       const param = new FormData();
@@ -404,25 +411,35 @@ export default {
           console.log(error);
         });
     },
-
-    getFile(file, fileList) {
-      this.fileList = fileList;
-      this.imgfile = file;
+    handleSuccess(res, file) {
+      this.imageShowUrl = URL.createObjectURL(file.raw);
     },
+    // getDataUrl(img) {
+    //   // Create canvas
+    //   const canvas = document.createElement("canvas");
+    //   const ctx = canvas.getContext("2d");
+    //   // Set width and height
+    //   canvas.width = img.width;
+    //   canvas.height = img.height;
+    //   // Draw the image
+    //   ctx.drawImage(img, 0, 0, img.width, img.height);
+    //   return canvas.toDataURL("image/jpeg");
+    // },
     //将选取的文件上传到服务器
     submitUpload() {
       this.hasImage = true;
       this.useUpload = true;
-      console.log(this.imgfile);
-      console.log("this.fileList[0].url");
-      this.imageShowUrl = this.imgfile;
+      console.log("imageshoeURL");
+      console.log(this.imageShowUrl);
       this.headers = { "Content-Type": "application/x-www-form-urlencoded" };
       this.$refs.upload.submit();
+      this.centerUploadDialogVisible = false;
     },
     urlUpload() {
       this.hasImage = true;
       this.useUrl = true;
       this.imageShowUrl = this.picUrl;
+      console.log(this.imageShowUrl);
       var image = new Image();
       image.src = this.picUrl;
       let self = this;
@@ -449,6 +466,7 @@ export default {
             console.log(error);
           });
       };
+      this.centerUploadDialogVisible = false;
     },
     /** url 转换成img */
     getBase64Image(img) {
@@ -509,10 +527,9 @@ export default {
 
 .sketch {
   width: 300px;
-  float: center;
+  float: left;
 }
 .result-display {
-  margin-top: 30px;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -532,17 +549,78 @@ export default {
 .img-show-icon {
   font-size: 28px;
   color: #8c939d;
-  width: 178px;
-  height: 178px;
-  line-height: 178px;
+  width: 250px;
+  height: 200px;
+  line-height: 200px;
   text-align: center;
 }
 .img-display {
   width: 178px;
   height: 178px;
   display: block;
+  margin: 0px auto;
 }
-.canvas {
-  width: 1000px;
+// .canvasboard {
+//   width: 1000px;
+// }
+// .content {
+//   height: 200px;
+//   border: 1px solid #555555;
+// }
+.url-font {
+  margin-left: 20px;
+  font-size: 18px;
+}
+.upload-font {
+  margin-left: 20px;
+  margin-top: 30px;
+  font-size: 18px;
+}
+.upload-demo {
+  margin-left: 20px;
+  margin-top: 12px;
+}
+.el-upload__tip {
+  margin-top: 10px;
+  font-size: 15px;
+}
+.button-draw {
+  background-color: white;
+  color: black;
+  border: 2px solid #555555;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 20px;
+  margin: 4px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  width: 200px;
+  margin-top: 90px;
+}
+.button-draw:hover {
+  background-color: #555555;
+  color: white;
+}
+.button-upload {
+  background-color: white;
+  color: black;
+  border: 2px solid #555555;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 20px;
+  margin: 4px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  width: 200px;
+  margin-top: 50px;
+}
+.button-upload:hover {
+  background-color: #555555;
+  color: white;
+}
+.header {
+  margin-left: 30px;
 }
 </style>
