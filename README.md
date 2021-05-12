@@ -13,8 +13,17 @@
 其中，三维显示所用模型为本地文件，仅用于测试显示及交互状态。
 
 ### 结果展示
-
-
+项目介绍
+![image](https://github.com/qxy2000/DraftDemoFrontend/blob/init_demo_v1/readme/introduce.png)
+模型查看
+![image](https://github.com/qxy2000/DraftDemoFrontend/blob/init_demo_v1/readme/display.png)
+模型交互
+![image](https://github.com/qxy2000/DraftDemoFrontend/blob/init_demo_v1/readme/interaction.png)
+草图检索
+![image](https://github.com/qxy2000/DraftDemoFrontend/blob/init_demo_v1/readme/draft-display.png)
+绘制及上传草图
+![image](https://github.com/qxy2000/DraftDemoFrontend/blob/init_demo_v1/readme/draft-draw.png)
+![image](https://github.com/qxy2000/DraftDemoFrontend/blob/init_demo_v1/readme/upload.png)
 <br/>
 
 进一步实现：
