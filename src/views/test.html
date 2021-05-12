@@ -39,17 +39,72 @@
         }    
         //创建模型    
         function initMesh() {        
-            geometry = new THREE.BoxGeometry( 2, 2, 2 ); //创建几何体        
-            //material = new THREE.MeshNormalMaterial(); //创建材质 
-            material = new THREE.MeshLambertMaterial({color:0x00ffff});       
-            mesh = new THREE.Mesh( geometry, material ); //创建网格        
-            scene.add( mesh ); //将网格添加到场景    
-        }    
+            var vertices = [
+				new THREE.Vector3(-1.0, -1.0,  0.0),
+				new THREE.Vector3(1.0, -1.0,  0.0),
+				new THREE.Vector3(1.0,  1.0,  0.0)
+			];
+			var faces=[
+				new THREE.Face3( 0, 1, 2 )
+			];
+			var geometry = new THREE.Geometry();
+			geometry.vertices = vertices;
+			geometry.faces=faces;
+			var material = new THREE.MeshBasicMaterial( { color: 0xff0000} );
+			var mesh = new THREE.Mesh( geometry, material );
+			scene.add( mesh );
+        }
+        
+        function loadModel() {
+            const scope = this;
+            const loader = new THREE.FileLoader();
+            loader.load('../../static/model/M000001.off',
+                // onLoad回调
+                function(data) {
+                   scope.parseText(data);
+                },
+                // onProgress回调
+                function(xhr) {
+                    console.log((xhr.loaded / xhr.total * 100) + " % loaded");
+                },
+                // onError回调
+                function(err) {
+                    console.error('An error happened');
+                })
+        }
+
+        function parseText(data) {
+            var resArr = data.split(/\s+/);
+            var numVertices = resArr[1];
+            var numFaces = resArr[2];
+
+
+            var vertices = [];
+            var indexVNum = 4 + 3 * numVertices;
+            for (var i = 4; i < indexVNum; i+=3) {
+                var point = new THREE.Vector3(resArr[i], resArr[i + 1], resArr[i + 2]);
+                vertices.push(point);
+            }
+
+            var faces = [];
+            var indexFNum = indexVNum + 4 * numFaces;
+            for (var i = indexVNum; i < indexFNum; i+=4) {
+                var face = new THREE.Face3(resArr[i + 1], resArr[i + 2], resArr[i + 3]);
+                faces.push(face);
+            }
+			var geometry = new THREE.Geometry();
+			geometry.vertices = vertices;
+			geometry.faces=faces;
+			var material = new THREE.MeshBasicMaterial( { color: 0xff0000} );
+			var mesh = new THREE.Mesh( geometry, material );
+			scene.add( mesh );
+        }
+
         //运行动画    
         function animate() {        
             requestAnimationFrame(animate); //循环调用函数        
-            mesh.rotation.x += 0.01; //每帧网格模型的沿x轴旋转0.01弧度        
-            mesh.rotation.y += 0.02; //每帧网格模型的沿y轴旋转0.02弧度    
+            //mesh.rotation.x += 0.01; //每帧网格模型的沿x轴旋转0.01弧度        
+            //mesh.rotation.y += 0.02; //每帧网格模型的沿y轴旋转0.02弧度    
             stats.update();          //更新性能插件    
             renderer.render( scene, camera ); //渲染界面    
         }
@@ -82,7 +137,8 @@
             initScene();        
             initCamera();
             initLight();        
-            initMesh();        
+            //initMesh();
+            loadModel();        
             animate();    
         }
         </script>

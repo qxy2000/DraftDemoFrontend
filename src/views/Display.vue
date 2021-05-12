@@ -10,7 +10,7 @@
                 <div class="group-title">选择您要查看的模型类别:</div>
                 <div>
                     <el-radio-group v-model="radio" class="group-box">
-                        <div v-for="(item, index) in items">
+                        <div v-for="(item, index) in items" :key="index">
                             <el-button size="mini" class="group-button" @click="getModelsByTag(index)">
                                 {{item}}</el-button>
                         </div>
@@ -24,16 +24,21 @@
                 </div>
             </div>
             <div class="three-dimensional-content">
-                <DisplayBox :id=0></DisplayBox>
-                <DisplayBox :id=1></DisplayBox>
-                <DisplayBox :id=2></DisplayBox>
-                <DisplayBox :id=3></DisplayBox>
-                <DisplayBox :id=4></DisplayBox>
-                <DisplayBox :id=5></DisplayBox>
-                <DisplayBox :id=6></DisplayBox>
-                <DisplayBox :id=7></DisplayBox>
-                <DisplayBox :id=8></DisplayBox>
+                <DisplayBox :id=0 :fileName="fileName[0]"></DisplayBox>
+                <DisplayBox :id=1 :fileName="fileName[1]"></DisplayBox>
+                <DisplayBox :id=2 :fileName="fileName[2]"></DisplayBox>
+                <DisplayBox :id=3 :fileName="fileName[3]"></DisplayBox>
+                <DisplayBox :id=4 :fileName="fileName[4]"></DisplayBox>
+                <DisplayBox :id=5 :fileName="fileName[5]"></DisplayBox>
+                <DisplayBox :id=6 :fileName="fileName[6]"></DisplayBox>
+                <DisplayBox :id=7 :fileName="fileName[7]"></DisplayBox>
+                <DisplayBox :id=8 :fileName="fileName[8]"></DisplayBox>
             </div>
+            <div class="three-pagination">
+                    <el-pagination @current-change="handleRequest" background
+                                   layout="prev, pager, next" :total="50">
+                    </el-pagination>
+                </div>
         </el-main>
     </el-container>
 </template>
@@ -65,6 +70,20 @@ export default {
                     'blimp', 'book', 'bookself', 'bowl', 'brain', 'bread', 'bridge', 'bus', 'bush', 'butterfly',
                     'cabinet', 'cake', 'camel', 'camera', 'candle', 'cannon', 'car', 'castle', 'cell phone', 'chair'],
             items2: ['chandelier', 'church', 'cigarette', 'computer', 'couch', 'cow'],
+            drawer: false,
+            size: '800px',
+            fileName: [
+                'M000001.off',
+                'M000003.off',
+                'M000008.off',
+                'M000013.off',
+                'M000015.off',
+                'M000020.off',
+                'M000022.off',
+                'M000042.off',
+                'M000052.off'
+
+            ]
         }
     },
     methods: {
@@ -78,6 +97,9 @@ export default {
             else {
                 this.items = this.items2;
             }
+        },
+        handleRequest(newPage) {
+
         }
     }    
 }
@@ -126,7 +148,7 @@ export default {
 }
 
 .group-title {
-    margin-top: 100px;
+    margin-top: 90px;
     margin-bottom: 10px;
     text-align: left;
     margin-left: 20px;
@@ -140,10 +162,14 @@ export default {
 }
 
 .three-dimensional-content {
-    padding: 0 30px 0 0;
+    padding: 0;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+}
+
+.three-pagination {
+    margin-left: 300px;
+    margin-top: 10px;
 }
 
 .group-box .el-button {
