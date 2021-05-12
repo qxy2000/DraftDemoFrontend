@@ -6,90 +6,63 @@
     <el-main>
       <div class="overlay"></div>
       <div class="main-background"></div>
-      <el-col :span="6" offset="1">
-        <el-row>
-          <div class="sketch">
-            草图绘制
-          </div>
-        </el-row>
+      <div class="sketch-box">
         <el-row>
           <el-card class="img-show">
             <img v-if="hasImage" :src="imageShowUrl" class="img-display" />
             <i v-else class="el-icon-picture-outline img-show-icon"></i>
           </el-card>
         </el-row>
-        <el-row>
-          <el-button class="button-draw" @click="createCanvas"
-            >绘制草图</el-button
-          >
+        <el-row class="img-title">草图显示</el-row>
+        <el-row class="draw-sketch">
+          <el-button class="button-draw" type="primary" @click="createCanvas">绘制草图</el-button>
           <el-dialog
             title="画板"
             :visible.sync="centerDrawDialogVisible"
-            :width="canvasWidth"
-            center
-          >
-            <!-- 用画板进行草图的绘制 -->
+            :width="canvasWidth" :height="canvasHeight" center>
+            <!-- Draw sketch with drawing board -->
             <div class="canvasboard" v-show="canvasVisible">
-              <!-- <canvas id="canvas" width="300" height="300">  -->
               <el-row type="flex" class="canrow" justify="center">
                 <el-col :span="4" class="canrow-col">
-                  <el-slider
-                    v-if="isPainting"
-                    v-model="lineWidth"
-                    :min="1"
-                    :max="50"
-                  >
+                  <el-slider v-if="isPainting" v-model="lineWidth"
+                    :min="1" :max="50">
                   </el-slider>
-                  <!-- 调整画笔粗细 -->
-                  <el-slider
-                    v-else
-                    v-model="lineWidth"
-                    :min="10"
-                    :max="50"
-                    :step="10"
-                  >
+                  <!-- Adjust the thickness of the strokes -->
+                  <el-slider v-else v-model="lineWidth"
+                    :min="10" :max="50" :step="10">
                   </el-slider>
                 </el-col>
                 <el-col :span="12">
                   <div class="header">
                     <el-button-group>
-                      <!-- 画笔 -->
-                      <el-button
-                        :type="buttonType(0)"
-                        icon="iconfont icon-pen"
-                        round
-                        @click="painting"
-                      >
+                      <!-- brush -->
+                      <el-button :type="buttonType(0)"
+                        icon="iconfont icon-pen" round
+                        @click="painting">
                       </el-button>
-                      <!-- 橡皮 -->
-                      <el-button
-                        :type="buttonType(1)"
+                      <!-- rubber -->
+                      <el-button :type="buttonType(1)"
                         icon="iconfont icon-eraser"
-                        @click="eraser"
-                      >
+                        @click="eraser">
                       </el-button>
-                      <!-- 撤销 -->
+                      <!-- revoke -->
                       <el-button
                         :type="buttonType(2)"
                         icon="iconfont icon-last-step"
                         :disabled="history.length === 0"
-                        @click="lastStep"
-                      >
+                        @click="lastStep">
                       </el-button>
-                      <!-- 清空画板 -->
+                      <!-- empty the drawing board-->
                       <el-button
                         :type="buttonType(3)"
                         icon="iconfont icon-clear"
-                        @click="clearAll"
-                      >
+                        @click="clearAll">
                       </el-button>
-                      <!-- 保存图片 -->
+                      <!-- save image -->
                       <el-button
                         :type="buttonType(4)"
-                        icon="iconfont icon-save"
-                        round
-                        @click="save"
-                      >
+                        icon="iconfont icon-save" round
+                        @click="save">
                       </el-button>
                     </el-button-group>
                   </div>
@@ -102,41 +75,32 @@
               </el-row>
             </div>
             <span slot="footer" class="dialog-footer">
-              <el-button @click="centerDrawDialogVisible = false"
-                >取 消</el-button
-              >
-              <el-button type="primary" @click="handleDrawSubmit"
-                >确 定</el-button
-              >
+              <el-button @click="centerDrawDialogVisible = false">取 消</el-button>
+              <el-button type="primary" @click="handleDrawSubmit">确 定</el-button>
             </span>
           </el-dialog>
         </el-row>
-        <el-row>
+        <el-row class="upload-sketch">
           <el-button
             class="button-upload"
-            @click="centerUploadDialogVisible = true"
-            >上传图片</el-button
-          >
+            @click="centerUploadDialogVisible = true">上传图片</el-button>
 
           <el-dialog
-            title="请从以下两种方式中选择一种："
+            title="上传图片："
             :visible.sync="centerUploadDialogVisible"
-            width="30%"
+            width="40%"
             center
           >
+            <div class="url-font">请从以下两种上传方式中选择一种.</div>
             <div class="url-font">
               <span>图片url：</span>
               <div style="margin-top: 10px;">
-                <el-input
-                  placeholder="输入图片网址"
-                  v-model="picUrl"
-                  class="input-with-select"
-                  ><el-button
-                    slot="append"
-                    icon="el-icon-search"
-                    @click="urlUpload"
-                  ></el-button
-                ></el-input>
+                <el-input placeholder="输入图片网址"
+                  v-model="picUrl" class="input-with-select">
+                  <el-button slot="append" icon="el-icon-search"
+                    @click="urlUpload">
+                  </el-button>
+                </el-input>
               </div>
             </div>
             <div>
@@ -169,21 +133,18 @@
             </div>
           </el-dialog>
         </el-row>
-      </el-col>
-      <el-col :span="14" offset="2">
-        <div class="result-display">
-          <DisplayBox :id="0"></DisplayBox>
-          <DisplayBox :id="1"></DisplayBox>
-          <DisplayBox :id="2"></DisplayBox>
-          <DisplayBox :id="3"></DisplayBox>
-          <DisplayBox :id="4"></DisplayBox>
-          <DisplayBox :id="5"></DisplayBox>
-          <DisplayBox :id="6"></DisplayBox>
-          <DisplayBox :id="7"></DisplayBox>
-          <DisplayBox :id="8"></DisplayBox>
-          <!-- <DisplayBox :id="8"></DisplayBox> -->
-        </div>
-      </el-col>
+      </div>
+      <div class="result-display">
+        <DisplayBox :id=0 :fileName="fileName[0]"></DisplayBox>
+        <DisplayBox :id=1 :fileName="fileName[1]"></DisplayBox>
+        <DisplayBox :id=2 :fileName="fileName[2]"></DisplayBox>
+        <DisplayBox :id=3 :fileName="fileName[3]"></DisplayBox>
+        <DisplayBox :id=4 :fileName="fileName[4]"></DisplayBox>
+        <DisplayBox :id=5 :fileName="fileName[5]"></DisplayBox>
+        <DisplayBox :id=6 :fileName="fileName[6]"></DisplayBox>
+        <DisplayBox :id=7 :fileName="fileName[7]"></DisplayBox>
+        <DisplayBox :id=8 :fileName="fileName[8]"></DisplayBox>
+      </div>
     </el-main>
   </el-container>
 </template>
@@ -209,8 +170,8 @@ export default {
         status3: 1
       },
       canvasVisible: false,
-      canvasWidth: 800,
-      canvasHeight: 600,
+      canvasWidth: '800',
+      canvasHeight: '480',
       paint: false,
       clear: false,
       isPainting: false,
@@ -233,7 +194,18 @@ export default {
       useUpload: false,
       useUrl: false,
       centerDrawDialogVisible: false,
-      centerUploadDialogVisible: false
+      centerUploadDialogVisible: false,
+      fileName: [
+          'M000001.off',
+          'M000003.off',
+          'M000008.off',
+          'M000013.off',
+          'M000015.off',
+          'M000020.off',
+          'M000022.off',
+          'M000042.off',
+          'M000052.off'
+      ]
     };
   },
   methods: {
@@ -525,29 +497,35 @@ export default {
   z-index: -2;
 }
 
-.sketch {
-  width: 300px;
+.sketch-box {
+  width: 330px;
   float: left;
 }
 .result-display {
+  padding: 0;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
 }
 .upload-display {
   margin-top: 50px;
+}
+.img-title {
+  margin-top: 20px;
+  font-size: 18px;
 }
 .img-show {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
   position: relative;
   overflow: hidden;
+  margin: 20px 0 0 10px;
+  width: 310px;
 }
 .img-show:hover {
   border-color: #409eff;
 }
 .img-show-icon {
-  font-size: 28px;
+  font-size: 36px;
   color: #8c939d;
   width: 250px;
   height: 200px;
@@ -570,10 +548,10 @@ export default {
 .url-font {
   margin-left: 20px;
   font-size: 18px;
+  margin-top: 15px;
 }
 .upload-font {
-  margin-left: 20px;
-  margin-top: 30px;
+  margin: 30px 20px 20px 20px;
   font-size: 18px;
 }
 .upload-demo {
@@ -587,40 +565,48 @@ export default {
 .button-draw {
   background-color: white;
   color: black;
-  border: 2px solid #555555;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 20px;
-  margin: 4px 2px;
-  transition-duration: 0.4s;
+  border: 1px solid #999999;
+  font-size: 18px;
+  transition-duration: 0.2s;
   cursor: pointer;
-  width: 200px;
+  width: 180px;
   margin-top: 90px;
 }
 .button-draw:hover {
-  background-color: #555555;
+  background-color: #999999;
   color: white;
 }
 .button-upload {
   background-color: white;
   color: black;
-  border: 2px solid #555555;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 20px;
-  margin: 4px 2px;
-  transition-duration: 0.4s;
+  border: 1px solid #999999;
+  font-size: 18px;
+  transition-duration: 0.2s;
   cursor: pointer;
-  width: 200px;
+  width: 180px;
   margin-top: 50px;
 }
 .button-upload:hover {
-  background-color: #555555;
+  background-color: #999999;
   color: white;
 }
 .header {
   margin-left: 30px;
+}
+</style>
+
+<style lang="less">
+.draw-sketch .el-dialog__header {
+  padding-top: 15px;
+}
+.draw-sketch .el-dialog__body {
+  padding: 10px 20px 10px 20px;
+} 
+.draw-sketch .el-dialog__footer {
+  padding-bottom: 10px;
+}
+.upload-sketch .el-dialog__body {
+  padding-top: 0;
+  padding-bottom: 30px;
 }
 </style>

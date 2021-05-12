@@ -262,11 +262,11 @@ export default {
 }
 .el-card {
     width: 260px;
-    margin: 20px 20px 0 0;
+    margin: 20px 15px 0 0;
 }
 
 /*
-.display-button [class^=el-icon-]{
+.display-button ^=[classel-icon-]{
     font-size: 16px;
 }*/
 .display-button .el-link {

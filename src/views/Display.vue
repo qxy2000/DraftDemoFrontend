@@ -82,7 +82,6 @@ export default {
                 'M000022.off',
                 'M000042.off',
                 'M000052.off'
-
             ]
         }
     },
