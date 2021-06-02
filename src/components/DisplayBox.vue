@@ -4,17 +4,25 @@
         <div :id="id">
         </div>
         <div class="display-button">
-             <el-link :underline="false"><i class="el-icon-download"></i>下载</el-link>
-             <el-link :underline="false" @click="openDrawer"><i class="el-icon-full-screen"></i>查看详情</el-link>
+            <div class="display-label">
+                <el-tag size="mini">{{label}}</el-tag></div>
+            <div>
+                <el-link :underline="false" @click="download"><i class="el-icon-download"></i>下载</el-link>
+                <el-link :underline="false" @click="openDrawer"><i class="el-icon-full-screen"></i>查看</el-link>
+            </div>
         </div>
-        <el-drawer title="模型名称" :visible.sync="drawer" :size="size" z-index="10"
+        <el-drawer title="模型详情" :visible.sync="drawer" :size="size" z-index="10"
                    :before-close="handleClose" destroy-on-close>
             <div class="drawer-content">
-                <el-button @click="rotateControl">
-                    <span v-if="control.autoRotate=== false">旋转展示</span>
-                    <span v-if="control.autoRotate=== true">停止旋转</span>
-                </el-button>
-                <el-button>下载模型</el-button>
+                <div>模型标签: <el-tag>{{label}}</el-tag></div>
+                <div>
+                    <el-button @click="rotateControl">
+                        <i class="el-icon-view"></i>
+                        <span v-if="drawerControl.autoRotate=== false">旋转展示</span>
+                        <span v-if="drawerControl.autoRotate=== true">停止旋转</span>
+                    </el-button>
+                    <el-button @click="drawerDownload"><i class="el-icon-download"></i>下载模型</el-button>
+                </div>
             </div>
         </el-drawer>
     </el-card>
@@ -33,6 +41,7 @@ export default {
             material: '',
             mesh: '',
             control: '',
+            drawerControl: '',
             drawer: false,
             size: '850px',
             drawerRenderer: '',
@@ -41,30 +50,30 @@ export default {
             animateControl: '',
             cameraPos: 0,
             filePath: '',
+            contentData: '',
         }
     },
     props: [
         'id',
-        'fileName',
+        'label',
     ],
     mounted() {
          this.init();
     },
     methods: {
         init() {
-            this.filePath = '../../static/model/' + this.fileName;
             //init Renderer
             var box = document.getElementById(this.id);  
             this.renderer = new THREE.WebGLRenderer({antialias: true,alpha:true});
             //this.renderer = new THREE.WebGLRenderer();
-            this.renderer.setSize(260, 170); 
+            this.renderer.setSize(270, 170); 
             box.appendChild(this.renderer.domElement);
 
             //init scene
             this.scene = new THREE.Scene();
 
             //init camera
-            this.camera = new THREE.PerspectiveCamera(45, 260 / 170, 0.1, 200); 
+            this.camera = new THREE.PerspectiveCamera(45, 270 / 170, 0.0001, 20000); 
             this.camera.position.set(0, 0, 2);
             this.scene.add(this.camera);
         
@@ -74,29 +83,26 @@ export default {
             this.scene.add(light);
             this.scene.add(new THREE.AmbientLight(0x555555));
 
+            //init controller
+            this.control = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.control.enabled = true;
+            this.control.target = new THREE.Vector3();         
+            this.control.autoRotate = false;
+            this.control.enablePan = false;
+
+
             //load mesh
             this.loadModel();
         },
 
         loadModel() {
-            const scope = this;
-            const loader = new THREE.FileLoader();
-            loader.load(this.filePath,
-                // onLoad回调
-                function(data) {
-                   scope.parseText(data);
-                },
-                // onProgress回调
-                function(xhr) {
-                    console.log((xhr.loaded / xhr.total * 100) + " % loaded");
-                },
-                // onError回调
-                function(err) {
-                    console.error('An error happened');
-                })
+            axios.get('http://100.64.215.235:5000/api/model/'+this.id).then(
+                response => (this.parseText(response.data))
+            );
         },
 
         parseText(data) {
+            this.contentData = data;
             var resArr = data.split(/\s+/);
             var numVertices = resArr[1];
             var numFaces = resArr[2];
@@ -136,7 +142,9 @@ export default {
             var widthX = this.geometry.boundingBox.max.x - this.geometry.boundingBox.min.x;
             var widthY = this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y;
             var widthZ = this.geometry.boundingBox.max.z - this.geometry.boundingBox.min.z;
-            console.log("widthX: " + widthX + " widthY: " + widthY + " widthZ: " + widthZ);
+            if(this.id == "4300") {
+                console.log("widthX: " + widthX + " widthY: " + widthY + " widthZ: " + widthZ);
+            }
             
             var cX = this.geometry.boundingBox.min.x + widthX/2;
             var cY = this.geometry.boundingBox.min.y + widthY/2;
@@ -151,7 +159,10 @@ export default {
             var scaleY = 1 / widthY;
             var scaleZ = 1 / widthZ;
             var scale_0 = scaleX < scaleY ? scaleX : scaleY;
-            var scale_1 = scale_0 < scaleZ ? scale_0 : scaleZ; 
+            var scale_1 = scale_0 < scaleZ ? scale_0 : scaleZ;
+            if(this.id == "4300") {
+                console.log("scale: " + scale_1);
+            } 
             this.camera.position.z /= scale_1;
             
             this.scene.add(this.mesh);
@@ -159,8 +170,6 @@ export default {
         }, 
 
         animate() {
-            //this.mesh.rotation.x += 0.005;
-            //this.mesh.rotation.y += 0.005;
             this.renderer.render( this.scene, this.camera ); //渲染界面 
             requestAnimationFrame(this.animate);
         },
@@ -169,6 +178,21 @@ export default {
             this.control.update();
         },
 
+        download() {
+            console.log("download");
+            let content = new Blob([this.contentData]);
+            let urlObject = window.URL || window.webkitURL || window;	
+            let url = urlObject.createObjectURL(content); 	
+	  	    let el = document.createElement('a');
+            el.href = url; 
+            el.download ="model.off";
+            document.body.appendChild(el);
+            el.click();
+            setTimeout(function(e){
+                document.body.removeChild(el);
+            },1000);
+            urlObject.revokeObjectURL(url);
+        },
         openDrawer() {
             this.drawer = true;
             setTimeout(() => this.showContent(), 300);
@@ -182,7 +206,7 @@ export default {
             
             this.drawerScene = new THREE.Scene();
 
-            this.drawerCamera = new THREE.PerspectiveCamera(45, 800 / 500, 0.1, 200); 
+            this.drawerCamera = new THREE.PerspectiveCamera(45, 800 / 500, 0.0001, 20000); 
             this.drawerCamera.position.set(0, 0, 2);
             this.drawerScene.add(this.drawerCamera);
 
@@ -216,17 +240,17 @@ export default {
             this.drawerScene.add(newMesh);
 
             //init control
-            this.control = new THREE.OrbitControls(this.drawerCamera, this.drawerRenderer.domElement);
-            this.control.enabled = true;
-            this.control.target = new THREE.Vector3();         
-            this.control.autoRotate = false;
-            this.control.rotateSpeed = 0.4;
-            this.control.maxPolarAngle = 360;
+            this.control.enabled = false;
+            this.drawerControl = new THREE.OrbitControls(this.drawerCamera, this.drawerRenderer.domElement);
+            this.drawerControl.enabled = true;
+            this.drawerControl.target = new THREE.Vector3();         
+            this.drawerControl.autoRotate = false;
+            this.drawerControl.autoRotateSpeed = 0.5;
 
             this.drawerAnimate();
         },
         drawerAnimate() {
-            this.render();
+            this.drawerControl.update();
             this.drawerRenderer.render( this.drawerScene, this.drawerCamera );
             this.animateControl = requestAnimationFrame(this.drawerAnimate);
         },
@@ -236,21 +260,44 @@ export default {
             this.drawerRenderer.forceContextLoss();
             this.drawerRenderer = null;
             //this.renderer.setSize(260, 180);
-            this.control.enabled = false; 
+            this.drawerControl.enabled = false; 
+            this.control.enabled = true;
             done();
         },
         rotateControl(e) {
             let target = e.target;
-            if(target.nodeName == "SPAN"){
+            if(target.nodeName == "SPAN" || target.nodeName == "I"){
                 target = e.target.parentNode.parentNode;
             }
             target.blur();
-            if (this.control.autoRotate) {
-                this.control.autoRotate = false;
+            if (this.drawerControl.autoRotate) {
+                this.drawerControl.autoRotate = false;
             } else {
-                this.control.autoRotate = true;
-                this.control.autoRotateSpeed = 3.0;
+                this.drawerControl.autoRotate = true;
+                this.drawerControl.autoRotateSpeed = 3.0;
             }
+        },
+        drawerDownload(e) {
+            let target = e.target;
+            if(target.nodeName == "SPAN"){
+                target = e.target.parentNode;
+            }
+            if(target.nodeName == "I") {
+                target = e.target.parentNode.parentNode;
+            }
+            target.blur();
+            let content = new Blob([this.contentData]);
+            let urlObject = window.URL || window.webkitURL || window;	
+            let url = urlObject.createObjectURL(content); 	
+	  	    let el = document.createElement('a');
+            el.href = url; 
+            el.download ="model.off";
+            document.body.appendChild(el);
+            el.click();
+            setTimeout(function(e){
+                document.body.removeChild(el);
+            },1000);
+            urlObject.revokeObjectURL(url);
         },
     }
 }
@@ -258,13 +305,12 @@ export default {
 
 <style lang="less" scoped>
 #displaybox {
-    width: 260px;
+    width: 270px;
 }
 .el-card {
-    width: 260px;
-    margin: 20px 15px 0 0;
+    width: 270px;
+    margin: 15px 13px 0 0;
 }
-
 /*
 .display-button ^=[classel-icon-]{
     font-size: 16px;
@@ -275,14 +321,32 @@ export default {
 }
 
 .display-button {
-    margin: 0 0 10px 100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-right: 10px;
+    margin-left: 10px;
+    height: 35px;
+}
+
+.display-label {
+    user-select: none;
 }
 
 .drawer-content {
-    margin: 550px 0 0 350px;
+    display:flex;
+    margin: 550px 50px 0 50px;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .drawer-content .el-button {
     margin-right: 20px;
+}
+</style>
+
+<style lang="less">
+.drawer-content .el-tag {
+    font-size: 15px;
 }
 </style>

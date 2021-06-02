@@ -1,7 +1,9 @@
 <template>
 <div id="navigator">
     <div id="whole-title"><a @click="goIntroduce">三维模型检索</a></div>
-
+    <div id="logo">
+        <el-image :src="require('@/assets/imgs/title2.gif')" style="width: 110px;"/>
+    </div>
     <div v-if = "status.status1 == 0">
         <div class="link-1">
             <a @click="goIntroduce" class="sub-title">项目介绍</a>
@@ -132,10 +134,14 @@ a.sub-title:hover {
     width: 300px;
     position: absolute;
 }
+#logo {
+    padding-top: 15px;
+    padding-bottom: 90px;
+}
 #whole-title {
     font-size: 31px;
     font-weight: 900;
     padding-top: 120px;
-    padding-bottom: 90px;
+    //padding-bottom: 90px;
 }
 </style>

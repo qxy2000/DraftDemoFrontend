@@ -2,14 +2,15 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import App from './App'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+import './assets/iconfont/iconfont.css'
 import router from './router'
-import ElementUI from 'element-ui';
-import 'element-ui/lib/theme-chalk/index.css';
-import './assets/iconfont/iconfont.css';
 import axios from 'axios'
-import VueAxios from 'vue-axios'
 Vue.use(ElementUI);
-Vue.use(VueAxios, axios)
+
+Vue.prototype.$axios = axios
+axios.defaults.baseURL = 'http://100.64.215.235:5000/api'
 
 Vue.config.productionTip = false
 
